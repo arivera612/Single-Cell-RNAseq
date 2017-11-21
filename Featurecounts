@@ -1,0 +1,3 @@
+library(Rsubread)
+counts <- featureCounts(files=c(), annot.ext="", isGTFAnnotationFile=TRUE, GTF.featureType="exon", GTF.attrType="gene_id", 
+  useMetaFeatures=TRUE, allowMultiOverlap=FALSE, isPairedEnd=TRUE, requireBothEndsMapped=TRUE, autosort=TRUE)
