@@ -1,0 +1,78 @@
+#Create SCE object
+
+#normalize
+normcounts(sce) <- log2(counts(sce) + 1)
+sce
+
+#Expression QC
+library(SingleCellExperiment)
+library(scater)
+options(stringsAsFactors=FALSE)
+
+#read in raw counts
+reads <- read.table("counts.xls", sep="\t")
+
+#create annotation file to group column names in counts file
+anno <- read.table("annotation.txt", sep="\t", header=TRUE)
+
+#Create SCE object
+reads <- SingleCellExperiment(assays=list(counts=as.matrix(reads)), colData=anno)
+keep_feature <- rowSums(counts(reads)>0)>0
+reads <- reads[keep_feature,]
+
+#Calculate quality metrics
+reads <- calculateQCMetrics(reads)
+head(colnames(colData(reads)))
+
+#logcounts_raw
+assay(reads, "logcounts_raw") <- log2(counts(reads) + 1)
+reducedDim(reads) <- NULL
+saveRDS(reads, file = "reads.rds")
+reads <- readRDS("reads.rds")
+
+#See distribution
+hist(reads$total_counts, breaks=100)
+
+#library sizes
+#defined as total sum of counts across all features
+hist(reads$total_counts/1e6, xlab="Library sizes (millions)", main="", 
+    breaks=20, col="grey80", ylab="Number of cells")
+    
+#number of expressed genes
+#number of features with non-zero counts for that cell
+hist(reads$total_features, xlab="Number of expressed genes", main="", 
+    breaks=20, col="grey80", ylab="Number of cells")
+    
+#Look at highest expression
+plotQC(reads, type="highest-expression")
+#Normalize
+reads <- normaliseExprs(reads, method=, design=, feature_set=NULL, exprs_values="counts", return_norm_as_exprs=TRUE, return_log=TRUE)
+
+#PCA
+plotPCA(reads, colour_by="Row", shape_by="Well")
+
+plotPCA(
+    reads,
+    exprs_values = "counts",
+    colour_by = "sample_id",
+    size_by = "total_features"
+)
+
+plotPCA(
+    reads,
+    exprs_values = "logcounts_raw",
+    colour_by = "sample_id",
+    size_by = "total_features"
+)
+
+plotPCA(
+    reads,
+    exprs_values = "counts",
+    size_by = "total_features"
+)
+plotPCA(
+    reads,
+    exprs_values = "counts",
+    size_by = "total_counts",
+    colour_by ="sample_id", legend=none
+)
