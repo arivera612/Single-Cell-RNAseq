@@ -49,6 +49,7 @@ plotQC(reads, type="highest-expression")
 reads <- normaliseExprs(reads, method=, design=, feature_set=NULL, exprs_values="counts", return_norm_as_exprs=TRUE, return_log=TRUE)
 
 #PCA
+plotPCA(reads, exprs_values="logcounts_raw", colour_by="Col_name", size_by="total_features")
 plotPCA(reads, colour_by="Row", shape_by="Well")
 
 plotPCA(
