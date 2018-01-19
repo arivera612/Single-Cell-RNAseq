@@ -1,0 +1,15 @@
+~/star/code/STAR-STAR_2.4.0k/bin/Linux_x86_64/STAR \
+STAR --runThreadN {number of cores} --runMode genomeGenerate --genomeDir /path/to/resulting/STAR/genome/ --genomeFastaFiles /path/to/genome/fasta/file --sjdbGTFfile /path/to/GTF/or/GFF --sjdbOverhang {read length - 1}
+
+or i in *fastq; do
+/bigdata/messaoudilab/arivera/STAR-2.5.3a/bin/Linux_x86_64/STAR --runMode alignReads --genomeLoad LoadAndKeep --limitBAMsortRAM 15000000000 --outSAMtype BAM SortedByCoordinate --genomeDir /bigdata/messaoudilab/arivera/viral_genomes/Rhesus_SVV/STAR_genome --readFilesIn $i ${i%fastq} --runThreadN 10 --outFileNamePrefix ${i%fastq}
+done
+
+EXITING because of fatal PARAMETERS error: limitBAMsortRAM=0 (default) cannot be used with --genomeLoad=LoadAndKeep, or any other shared memory options
+SOLUTION: please use default --genomeLoad NoSharedMemory, 
+        OR specify --limitBAMsortRAM the amount of RAM (bytes) that can be allocated for BAM sorting in addition to shared memory allocated for the genome.
+        --limitBAMsortRAM typically has to be > 10000000000 (i.e 10GB).
+S
+Jan 16 21:39:58 ...... FATAL ERROR, exiting
+cat: Cell999.: No such file or directory
+pigeon
