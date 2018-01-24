@@ -1,0 +1,1 @@
+sort -n -k 2,2 -r counts.txt > counts_sorted.txt
