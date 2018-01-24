@@ -1,0 +1,12 @@
+#run in same directory
+for filename in *.fastq; do
+        x=`cat $filename | wc -l`
+        y=$((x/4))
+#	printf "[$filename]" '%s\t' "[$y]"
+        echo  -e "${filename}\t${y}"
+#	if (( $y >=10000))
+#               then
+#               echo  -e "${filename}\t${y}"
+#	fi
+done
+
