@@ -1,0 +1,6 @@
+#Example file; barcode for read 2
+#used for ddseq demultiplexing
+1	TAAGGCGA
+2	CGTACTAG
+3	AGGCAGAA
+4	TCCTGAGC
