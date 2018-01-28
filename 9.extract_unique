@@ -1,1 +1,3 @@
-samtools view -h -q  255 Aligned.sortedByCoord.out.bam > Aligned_unique.bam
+for filename in *.bam; do
+samtools view -h -q 255 $filename > Unique_$filename
+done
