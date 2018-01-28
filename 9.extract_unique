@@ -1,0 +1,1 @@
+samtools view -h -q  255 Aligned.sortedByCoord.out.bam > Aligned_unique.bam
