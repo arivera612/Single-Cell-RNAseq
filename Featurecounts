@@ -1,3 +1,4 @@
 library(Rsubread)
-counts <- featureCounts(files=c(), annot.ext="", isGTFAnnotationFile=TRUE, GTF.featureType="exon", GTF.attrType="gene_id", 
-  useMetaFeatures=TRUE, allowMultiOverlap=FALSE, isPairedEnd=TRUE, requireBothEndsMapped=TRUE, autosort=TRUE)
+fls <- dir(".",".out.bam")
+counts <- featureCounts(fls, annot.ext="/bigdata/messaoudilab/arivera/viral_genomes/Rhesus_SVV/Macaca_mulatta_SVV.gtf", isGTFAnnotationFile=TRUE, GTF.featureType="exon", GTF.attrType="gene_id")
+write.table(counts, file="Counts.xls", sep="\t", quote=FALSE)
