@@ -1,0 +1,3 @@
+for filename in *.bam; do
+  /bigdata/messaoudilab/arivera/subread-1.6.0-source/bin/featureCounts -a /bigdata/messaoudilab/arivera/viral_genomes/Rhesus_SVV/Macaca_mulatta_SVV.gtf -t exon -g gene_id -o counts.txt $filename
+done
