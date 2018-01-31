@@ -1,4 +1,4 @@
 library(Rsubread)
 fls <- dir(".",".out.bam")
 counts <- featureCounts(fls, annot.ext="/bigdata/messaoudilab/arivera/viral_genomes/Rhesus_SVV/Macaca_mulatta_SVV.gtf", isGTFAnnotationFile=TRUE, GTF.featureType="exon", GTF.attrType="gene_id")
-write.table(counts$counts, file="Counts.xls", sep="\t", row.names=1)
+write.table(counts$counts, file="Counts.xls", sep="\t", row.names=TRUE, quote=FALSE)
