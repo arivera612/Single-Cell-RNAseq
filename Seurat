@@ -5,13 +5,16 @@ library(Matrix)
 
 #Load Data
 
-Data <- read.table("Count_expression_matrix.txt", sep="\t", row.names=1)
+Data2 <- read.table("Count_expression_matrix.txt", sep="\t")
+Data <- Data2[,-1]
+names <- Data2$X
+rownames(Data) = make.names(names, unique=TRUE)
 
 # Initialize the Seurat object with the raw (non-normalized data).  Keep all
 # genes expressed in >= 3 cells (~0.1% of the data). Keep all cells with at
 # least 200 detected genes
 
-pbmc <- CreateSeuratObject(raw.data = Data, project = "CD4_d7")
+Data <- CreateSeuratObject(raw.data = Data, project = "CD4_d7")
     
 # The number of genes and UMIs (nGene and nUMI) are automatically calculated
 # for every object by Seurat.  For non-UMI data, nUMI represents the sum of
