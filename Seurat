@@ -1,14 +1,17 @@
+##SETUP SEURAT OBJECT
 library(Seurat)
 library(dplyr)
 library(Matrix)
+
+#Load Data
 
 Data <- read.table("Count_expression_matrix.txt", sep="\t", row.names=1)
 
 # Initialize the Seurat object with the raw (non-normalized data).  Keep all
 # genes expressed in >= 3 cells (~0.1% of the data). Keep all cells with at
 # least 200 detected genes
-pbmc <- CreateSeuratObject(raw.data = pbmc.data, min.cells = 3, min.genes = 200, 
-    project = "10X_PBMC")
+
+pbmc <- CreateSeuratObject(raw.data = Data, project = "CD4_d7")
     
 # The number of genes and UMIs (nGene and nUMI) are automatically calculated
 # for every object by Seurat.  For non-UMI data, nUMI represents the sum of
@@ -18,38 +21,99 @@ pbmc <- CreateSeuratObject(raw.data = pbmc.data, min.cells = 3, min.genes = 200,
 # non-log-normalized counts The % of UMI mapping to MT-genes is a common
 # scRNA-seq QC metric.  NOTE: You must have the Matrix package loaded to
 # calculate the percent.mito values.
-mito.genes <- grep(pattern = "^MT-", x = rownames(x = pbmc@data), value = TRUE)
-percent.mito <- Matrix::colSums(pbmc@raw.data[mito.genes, ])/Matrix::colSums(pbmc@raw.data)
+
+mito.genes <- grep(pattern = "^MT-", x = rownames(x = Data@data), value = TRUE)
+percent.mito <- Matrix::colSums(Data[mito.genes, ])/Matrix::colSums(Data)
 
 # AddMetaData adds columns to object@meta.data, and is a great place to
 # stash QC stats
-pbmc <- AddMetaData(object = pbmc, metadata = percent.mito, col.name = "percent.mito")
+
+Data <- AddMetaData(object = Data, metadata = percent.mito, col.name = "percent.mito")
 VlnPlot(object = pbmc, features.plot = c("nGene", "nUMI", "percent.mito"), nCol = 3)
+
+# GenePlot is typically used to visualize gene-gene relationships, but can
+# be used for anything calculated by the object, i.e. columns in
+# object@meta.data, PC scores etc.  Since there is a rare subset of cells
+# with an outlier level of high mitochondrial percentage and also low UMI
+# content, we filter these as well
+
+par(mfrow = c(1, 2))
+GenePlot(object = Data, gene1 = "nUMI", gene2 = "percent.mito")
+GenePlot(object = Data, gene1 = "nUMI", gene2 = "nGene")
 
 # We filter out cells that have unique gene counts over 2,500 or less than
 # 200 Note that low.thresholds and high.thresholds are used to define a
 # 'gate' -Inf and Inf should be used if you don't want a lower or upper
 # threshold.
-pbmc <- FilterCells(object = pbmc, subset.names = c("nGene", "percent.mito"), 
-    low.thresholds = c(200, -Inf), high.thresholds = c(2500, 0.05))
-    
-    
+Data <- FilterCells(object = Data, subset.names = c("nGene", "percent.mito"), 
+    low.thresholds = c(200, -Inf), high.thresholds = c(Inf, 0.05))
+
+
+#By default, seurat employs a global-scaling normalization method "LogNormalize"
+#that normalizes the gene expression measurements for each cell by the total expression
+#and multiplies this by a scale factor (10,000 by default), and log-transforms the result
+
 #Normalize Data
-pbmc <- NormalizeData(object = pbmc, normalization.method = "LogNormalize", 
+Data <- NormalizeData(object = Data, normalization.method = "LogNormalize", 
     scale.factor = 10000)
     
 #Detection of variable genes
-pbmc <- FindVariableGenes(object = pbmc, mean.function = ExpMean, dispersion.function = LogVMR, 
-    x.low.cutoff = 0.0125, x.high.cutoff = 3, y.cutoff = 0.5)
-length(x = pbmc@var.genes)
+#Seurat calculates highly variable genes and focuses on these for downstream analysis
+Data <- FindVariableGenes(object = Data, mean.function = ExpMean, dispersion.function = LogVMR, 
+    x.low.cutoff = 0.0125, x.high.cutoff = 8, y.cutoff = 0.5)
+length(x = Data@var.genes)
 
-
-#Scale Data
-pbmc <- ScaleData(object = pbmc, vars.to.regress = c("nUMI", "percent.mito"))
+#Scale Data and remove unwanted sources of variation
+Data <- ScaleData(object = Data, vars.to.regress = c("nUMI", "percent.mito"))
 
 #Perform linear dimensional reduction
-pbmc <- RunPCA(object = pbmc, pc.genes = pbmc@var.genes, do.print = TRUE, pcs.print = 1:5, 
+Data <- RunPCA(object = Data, pc.genes = Data@var.genes, do.print = TRUE, pcs.print = 1:5, 
     genes.print = 5)
 
 # Examine and visualize PCA results a few different ways
-PrintPCA(object = pbmc, pcs.print = 1:5, genes.print = 5, use.full = FALSE)
+PrintPCA(object = Data, pcs.print = 1:5, genes.print = 5, use.full = FALSE)
+VizPCA(object = Data, pcs.use = 1:2)
+PCAPlot(object = Data, dim.1 = 1, dim.2 = 2)
+
+# ProjectPCA scores each gene in the dataset (including genes not included
+# in the PCA) based on their correlation with the calculated components.
+# Though we don't use this further here, it can be used to identify markers
+# that are strongly correlated with cellular heterogeneity, but may not have
+# passed through variable gene selection.  The results of the projected PCA
+# can be explored by setting use.full=T in the functions above
+
+Data <- ProjectPCA(object = pbmc, do.print = FALSE)
+
+PCHeatmap(object = Data, pc.use = 1, cells.use = 500, do.balanced = TRUE, label.columns = FALSE)
+PCHeatmap(object = Data, pc.use = 1:12, cells.use = 500, do.balanced = TRUE, 
+    label.columns = FALSE, use.full = FALSE)
+    
+##Determine statistically significant principal components
+# NOTE: This process can take a long time for big datasets, comment out for
+# expediency.  More approximate techniques such as those implemented in
+# PCElbowPlot() can be used to reduce computation time
+
+Data <- JackStraw(object = Data, num.replicate = 100, do.print = FALSE)
+JackStrawPlot(object = Data, PCs = 1:12)
+PCElbowPlot(object = Data)
+
+##Cluster cells
+##Set the resolution between 0.6-1.2
+# save.SNN = T saves the SNN so that the clustering algorithm can be rerun
+# using the same graph but with a different resolution value (see docs for
+# full details)
+##dims.use use the statistically significant PCA
+
+Data <- FindClusters(object = Data, reduction.type = "pca", dims.use = 1:10, 
+    resolution = 0.6, print.output = 0, save.SNN = TRUE)
+    
+##Print summary of parameters chosen
+PrintFindClustersParams(object = Data)
+
+#Run Non-linear dimensional reduction (tSNE)
+pbmc <- RunTSNE(object = Data, dims.use = 1:10, do.fast = TRUE)
+
+# note that you can set do.label=T to help label individual clusters
+TSNEPlot(object = Data)
+##Save the object so that it can easily be loaded back in without rerunning steps above
+save(Data, file = "~/Projects/datasets/pbmc3k/pbmc_tutorial.Robj")
