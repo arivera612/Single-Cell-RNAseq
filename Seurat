@@ -26,13 +26,13 @@ Data <- CreateSeuratObject(raw.data = Data, project = "CD4_d7")
 # calculate the percent.mito values.
 
 mito.genes <- grep(pattern = "^MT-", x = rownames(x = Data@data), value = TRUE)
-percent.mito <- Matrix::colSums(Data[mito.genes, ])/Matrix::colSums(Data)
+percent.mito <- Matrix::colSums(Data@raw.data[mito.genes, ])/Matrix::colSums(Data@raw.data)
 
 # AddMetaData adds columns to object@meta.data, and is a great place to
 # stash QC stats
 
 Data <- AddMetaData(object = Data, metadata = percent.mito, col.name = "percent.mito")
-VlnPlot(object = pbmc, features.plot = c("nGene", "nUMI", "percent.mito"), nCol = 3)
+VlnPlot(object = Data, features.plot = c("nGene", "nUMI", "percent.mito"), nCol = 3)
 
 # GenePlot is typically used to visualize gene-gene relationships, but can
 # be used for anything calculated by the object, i.e. columns in
@@ -85,7 +85,7 @@ PCAPlot(object = Data, dim.1 = 1, dim.2 = 2)
 # passed through variable gene selection.  The results of the projected PCA
 # can be explored by setting use.full=T in the functions above
 
-Data <- ProjectPCA(object = pbmc, do.print = FALSE)
+Data <- ProjectPCA(object = Data, do.print = FALSE)
 
 PCHeatmap(object = Data, pc.use = 1, cells.use = 500, do.balanced = TRUE, label.columns = FALSE)
 PCHeatmap(object = Data, pc.use = 1:12, cells.use = 500, do.balanced = TRUE, 
@@ -97,7 +97,7 @@ PCHeatmap(object = Data, pc.use = 1:12, cells.use = 500, do.balanced = TRUE,
 # PCElbowPlot() can be used to reduce computation time
 
 Data <- JackStraw(object = Data, num.replicate = 100, do.print = FALSE)
-JackStrawPlot(object = Data, PCs = 1:12)
+JackStrawPlot(object = Data, PCs = 1:12, score.thresh=0.05)
 PCElbowPlot(object = Data)
 
 ##Cluster cells
@@ -114,7 +114,7 @@ Data <- FindClusters(object = Data, reduction.type = "pca", dims.use = 1:10,
 PrintFindClustersParams(object = Data)
 
 #Run Non-linear dimensional reduction (tSNE)
-pbmc <- RunTSNE(object = Data, dims.use = 1:10, do.fast = TRUE)
+Data <- RunTSNE(object = Data, dims.use = 1:10, do.fast = TRUE)
 
 # note that you can set do.label=T to help label individual clusters
 TSNEPlot(object = Data)
