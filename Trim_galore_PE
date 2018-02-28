@@ -1,0 +1,5 @@
+for f1 in *.read1.fastq.gz
+do
+  	i=`echo $f1 | cut -f 1 -d "."`
+        trim_galore --clip_R1 13 --clip_R2 13 --three_prime_clip_R1 2 --three_prime_clip_R2 2 -q 20 -length 52 --paired --trim1 --fastqc -o /bigdata/messaoudilab/arivera/SVV/CD4_aria/test $i.read1.fastq.gz $i.read2.fastq.gz
+done
