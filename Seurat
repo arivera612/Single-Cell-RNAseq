@@ -124,12 +124,17 @@ save(Data, file = "~/Projects/datasets/pbmc3k/pbmc_tutorial.Robj")
 ##Load saved data object
 load(file=".Robj", .GlobalEnv)
 
+# find all markers of cluster 1
+cluster0.markers <- FindMarkers(object = Data, ident.1 = 0, min.pct = 0.25)
+print(x = head(x = cluster0.markers, n = 5))
+
 # find markers for every cluster compared to all remaining cells, report
 # only the positive ones
 Data.markers <- FindAllMarkers(object = Data, only.pos = TRUE, min.pct = 0.25, 
     thresh.use = 0.25)
 Data.markers %>% group_by(cluster) %>% top_n(2, avg_logFC)
 
+write.table(Data.markers, file="Data_markers.xls", sep="\t", row.names=TRUE, quote=FALSE)
 
 ##Visualize marker genes
 VlnPlot(object = pbmc, features.plot = c("MS4A1", "CD79A"))
