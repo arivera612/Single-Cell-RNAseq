@@ -1,0 +1,6 @@
+
+#run in same directory
+for filename in *.bam; do
+        echo $filename
+        samtools view -c -F 260 $filename
+done
