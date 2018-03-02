@@ -120,3 +120,16 @@ Data <- RunTSNE(object = Data, dims.use = 1:10, do.fast = TRUE)
 TSNEPlot(object = Data)
 ##Save the object so that it can easily be loaded back in without rerunning steps above
 save(Data, file = "~/Projects/datasets/pbmc3k/pbmc_tutorial.Robj")
+
+##Load saved data object
+load(file=".Robj", .GlobalEnv)
+
+# find markers for every cluster compared to all remaining cells, report
+# only the positive ones
+Data.markers <- FindAllMarkers(object = Data, only.pos = TRUE, min.pct = 0.25, 
+    thresh.use = 0.25)
+Data.markers %>% group_by(cluster) %>% top_n(2, avg_logFC)
+
+
+##Visualize marker genes
+VlnPlot(object = pbmc, features.plot = c("MS4A1", "CD79A"))
